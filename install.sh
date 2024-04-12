@@ -74,6 +74,8 @@ launchctl disable gui/501/com.openssh.ssh-agent || {
   logger::warning "Failed to disable system ssh-agent"
 }
 
+killall ssh-agent 2>/dev/null || true
+
 # Remove any previous version
 launchctl remove world.farcloser.ssh_agent || true
 

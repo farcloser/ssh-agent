@@ -5,18 +5,26 @@ This is a very simple user launch agent for ssh-agent.
 This is typically useful if you are using a YubiKey, or otherwise want to use
 `sk-` keys, that the vanilla macOS ssh-agent does not support.
 
-## TL;DR with brew
+## TL;DR
 
 ```bash
-brew install farcloser/brews/ssh-agent
-brew services start ssh-agent
+# Disable system agent
+launchctl stop gui/501/com.openssh.ssh-agent
+launchctl disable gui/501/com.openssh.ssh-agent
+killall ssh-agent
+
+# Install and start updated agent
+brew install farcloser/brews/ssh_agent
+brew services start ssh_agent
+
+echo 'export SSH_AUTH_SOCK="$HOME/.ssh/agent"' >> ~/.profile
+source ~/.profile
 ```
 
-## Without brew services
+## Installing without using brew services
 
-Be sure to either have brew and the formula `ssh-agent` installed, or alternatively
-that you do have an ssh-agent in your PATH.
-
+Be sure to either have brew and the formula `openssh` installed, or alternatively
+that you do have a compatible ssh-agent in your PATH.
 
 Git clone.
 
@@ -25,10 +33,10 @@ Then:
 ./install.sh destination_folder
 ```
 
-## What is this doing exactly?
+### What is this doing exactly?
 
 `./install.sh` will:
-- stop and disable the system ssh-agent agent
+- stop and disable the system `ssh-agent` launchctl agent
 - copy the run script `farcloser-ssh-agent` into `destination_folder`
 - install and start a user launch agent in `~/Library/LaunchAgents/world.farcloser.ssh_agent.plist`:
 

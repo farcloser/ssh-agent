@@ -53,9 +53,42 @@ logger::info "Linting"
 lint::shell farcloser-ssh-agent ./*.sh
 logger::info "Linting successful"
 
-./install.sh
 
-pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
-  logger::error "No process found"
-  exit 1
+test::brew(){
+  # Kill the system one
+  launchctl stop gui/501/com.openssh.ssh-agent 2>/dev/null || true
+  launchctl disable gui/501/com.openssh.ssh-agent 2>/dev/null || true
+  killall ssh-agent 2>/dev/null || true
+
+  # Install and start updated agent
+  brew install ./ssh_agent.rb
+  brew services start ssh_agent
+
+  pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
+    logger::error "No process found"
+    exit 1
+  }
+
+  [ "$(pgrep -lf "ssh-agent" | wc -l |  tr -d ' ')" == 1 ] || {
+    logger::error "System agent still running"
+    exit 1
+  }
 }
+
+test::nobrew(){
+  ./install.sh
+
+  pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
+    logger::error "No process found"
+    exit 1
+  }
+
+  [ "$(pgrep -lf "ssh-agent" | wc -l |  tr -d ' ')" == 1 ] || {
+    logger::error "System agent still running"
+    exit 1
+  }
+}
+
+test::brew
+brew uninstall farcloser/brews/ssh_agent
+test::nobrew
