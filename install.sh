@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -o errexit -o errtrace -o functrace -o nounset -o pipefail
+set -o errexit -o errtrace -o functrace -o nounset -o pipefail -o monitor
 # ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
 # (c) 2024 Farcloser <apostasie@farcloser.world>
 # Distributed under the terms of the MIT license
@@ -36,6 +36,15 @@ logger::error(){
   logger::stamp "$COLOR_RED" "ERROR" "$@"
 }
 
+fs::ensuredir(){
+  local pth="$1"
+  mkdir -p "$pth" 2>/dev/null
+  [ -d "$pth" ] || {
+    logger::error "Failed to create $pth. Check your permissions."
+    return 1
+  }
+}
+
 root="$(cd "$(dirname "${BASH_SOURCE[0]:-$PWD}")" 2>/dev/null 1>&2 && pwd)"
 readonly root
 
@@ -49,15 +58,7 @@ posh_log_root="${POSH_LOG:-$HOME/Library/Log}"
 # Favor brew first, fallback on POSH_ otherwise, finally drop to macOS Library location if none of the above is set
 readonly log_root="${brew_log_root:-$posh_log_root}"
 
-mkdir -p "$destination" || {
-  logger::error "Failed to create destination $destination"
-  exit 1
-}
-
-mkdir -p "$HOME"/.ssh || {
-  logger::error "Failed to create ssh home directory"
-  exit 1
-}
+fs::ensuredir "$destination"
 
 ssh_agent_bin="${brew_root:+$brew_root/bin/ssh-agent}"
 ssh_agent_bin="${ssh_agent_bin:-$(which ssh-agent)}"

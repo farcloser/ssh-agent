@@ -17,8 +17,9 @@ killall ssh-agent
 brew install farcloser/brews/ssh_agent
 brew services start ssh_agent
 
-echo 'export SSH_AUTH_SOCK="$HOME/.ssh/agent"' >> ~/.profile
-source ~/.profile
+# Get the socket location in profile
+printf '. "$HOME/.posh_ssh'"\n" >> ~/.profile
+. ~/.profile
 ```
 
 ## Installing without using brew services
@@ -30,7 +31,12 @@ Git clone.
 
 Then:
 ```
+# Install
 ./install.sh destination_folder
+
+# Get the socket location in profile
+printf '. "$HOME/.posh_ssh'"\n" >> ~/.profile
+. ~/.profile
 ```
 
 ### What is this doing exactly?

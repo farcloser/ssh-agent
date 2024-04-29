@@ -1,0 +1,30 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    # https://github.com/actions/runner-images
+    strategy:
+      matrix:
+        #  os: [macos-13-xlarge, macos-14-large]
+        # x86, x86, arm64 - other architectures ^ require a paying sub (?)
+        os: [macos-12, macos-13, macos-14]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checks-out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Enable cache
+        uses: actions/cache@v4
+        with:
+          path: $GITHUB_WORKSPACE/cache
+          key: cache
+
+      - name: test
+        run: |
+          brew install shellcheck
+          ./test.sh "$HOME"

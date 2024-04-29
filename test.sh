@@ -61,7 +61,7 @@ test::brew(){
   killall ssh-agent 2>/dev/null || true
 
   # Install and start updated agent
-  brew install ./ssh_agent.rb
+  brew install farcloser/brews/ssh_agent
   brew services start ssh_agent
 
   pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
@@ -73,6 +73,9 @@ test::brew(){
     logger::error "System agent still running"
     exit 1
   }
+
+  brew services stop ssh_agent
+  brew uninstall farcloser/brews/ssh_agent
 }
 
 test::nobrew(){
@@ -90,5 +93,4 @@ test::nobrew(){
 }
 
 test::brew
-brew uninstall farcloser/brews/ssh_agent
 test::nobrew

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-set -o errexit -o errtrace -o functrace -o nounset -o pipefail
+set -o errexit -o nounset -o pipefail -o monitor
 # ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+# ssh-agent productization for macOS
 # (c) 2024 Farcloser <apostasie@farcloser.world>
 # Distributed under the terms of the MIT license
 # ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
@@ -35,14 +36,25 @@ logger::error(){
   logger::stamp "$COLOR_RED" "ERROR" "$@"
 }
 
-readonly socket="$HOME"/.ssh/agent
+fs::ensuredir(){
+  local pth="$1"
+  mkdir -p "$pth" 2>/dev/null
+  [ -d "$pth" ] || {
+    logger::error "Failed to create $pth. Check your permissions."
+    return 1
+  }
+}
+
+readonly socket=.ssh/agent
+
+fs::ensuredir "$(dirname "$HOME/$socket")"
 
 # Traces of brew
-ssh_agent_binary="${1:-"$HOME"/Applications/bin/ssh-agent}"
+ssh_agent_binary="${1:-$(brew --prefix 2>/dev/null || printf "/usr")/bin/ssh-agent}"
 readonly ssh_agent_binary
 
 # ! ps x | grep ssh-agent | grep "$socket" || {
-! pgrep -lf "$ssh_agent_binary" "$socket" >/dev/null || {
+! pgrep -lf "$ssh_agent_binary" "$HOME/$socket" >/dev/null || {
   logger::error "Agent already running"
   exit 1
 }
@@ -53,8 +65,20 @@ readonly ssh_agent_binary
 }
 
 # Delete any spurious remnant
-rm -f "$socket"
+rm -f "$HOME/$socket"
+
+cat <<-EOF > "$HOME/.posh_ssh"
+#!/usr/bin/env bash
+set -o errexit -o nounset -o pipefail -o monitor
+# ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+# ★ Kingpin             ★
+# ★ (c) 2023, Farcloser ★
+# ★ MIT License         ★
+# ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
+
+export SSH_AUTH_SOCK="\$HOME/$socket"
+EOF
 
 logger::info "Initialization done. Starting the agent now."
 # Start it in the foreground
-exec "$ssh_agent_binary" -D -a "$socket"
+exec "$ssh_agent_binary" -D -a "$HOME/$socket"
