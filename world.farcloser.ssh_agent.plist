@@ -3,7 +3,7 @@
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>world.farcloser.ssh_agent</string>
+        <string>world.farcloser.ssh-agent</string>
         <key>ProgramArguments</key>
         <array>
             <string>{LAUNCH_SCRIPT}</string>

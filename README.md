@@ -14,8 +14,8 @@ launchctl disable gui/501/com.openssh.ssh-agent
 killall ssh-agent
 
 # Install and start updated agent
-brew install farcloser/brews/ssh_agent
-brew services start ssh_agent
+brew install farcloser/brews/ssh-agent
+brew services start ssh-agent
 
 # Get the socket location in profile
 printf '. "$HOME/.posh_ssh'"\n" >> ~/.profile
@@ -30,13 +30,22 @@ that you do have a compatible ssh-agent in your PATH.
 Git clone.
 
 Then:
-```
+```bash
 # Install
 ./install.sh destination_folder
 
 # Get the socket location in profile
 printf '. "$HOME/.posh_ssh'"\n" >> ~/.profile
 . ~/.profile
+```
+
+To uninstall:
+```bash
+# Remove our service
+launchctl remove world.farcloser.ssh_agent
+# Re-enable the system service
+launchctl enable gui/501/com.openssh.ssh-agent
+launchctl start gui/501/com.openssh.ssh-agent
 ```
 
 ### What is this doing exactly?

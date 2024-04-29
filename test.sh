@@ -57,12 +57,13 @@ logger::info "Linting successful"
 test::brew(){
   # Kill the system one
   launchctl stop gui/501/com.openssh.ssh-agent 2>/dev/null || true
+  # Requires staff
   launchctl disable gui/501/com.openssh.ssh-agent 2>/dev/null || true
   killall ssh-agent 2>/dev/null || true
 
   # Install and start updated agent
-  brew install farcloser/brews/ssh_agent
-  brew services start ssh_agent
+  brew install farcloser/brews/ssh-agent
+  brew services start ssh-agent
 
   pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
     logger::error "No process found"
@@ -74,8 +75,8 @@ test::brew(){
     exit 1
   }
 
-  brew services stop ssh_agent
-  brew uninstall farcloser/brews/ssh_agent
+  brew services stop ssh-agent
+  brew uninstall farcloser/brews/ssh-agent
 }
 
 test::nobrew(){
