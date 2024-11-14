@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail -o monitor
 # ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
-# ssh-agent productization for macOS
 # (c) 2024 Farcloser <apostasie@farcloser.world>
 # Distributed under the terms of the MIT license
 # ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
@@ -10,7 +9,7 @@ readonly COLOR_RED=1
 readonly COLOR_GREEN=2
 readonly COLOR_YELLOW=3
 
-logger::stamp(){
+log::stamp(){
   local color="$1"
   local level="$2"
   local i
@@ -24,23 +23,23 @@ logger::stamp(){
   [ ! "$TERM" ] || [ ! -t 2 ] || >&2 tput op 2>/dev/null || true
 }
 
-logger::info(){
-  logger::stamp "$COLOR_GREEN" "INFO" "$@"
+log::info(){
+  log::stamp "$COLOR_GREEN" "INFO" "$@"
 }
 
-logger::warning(){
-  logger::stamp "$COLOR_YELLOW" "WARNING" "$@"
+log::warning(){
+  log::stamp "$COLOR_YELLOW" "WARNING" "$@"
 }
 
-logger::error(){
-  logger::stamp "$COLOR_RED" "ERROR" "$@"
+log::error(){
+  log::stamp "$COLOR_RED" "ERROR" "$@"
 }
 
 fs::ensuredir(){
   local pth="$1"
   mkdir -p "$pth" 2>/dev/null
   [ -d "$pth" ] || {
-    logger::error "Failed to create $pth. Check your permissions."
+    log::error "Failed to create $pth. Check your permissions."
     return 1
   }
 }
@@ -55,12 +54,12 @@ readonly ssh_agent_binary
 
 # ! ps x | grep ssh-agent | grep "$socket" || {
 ! pgrep -lf "$ssh_agent_binary" "$HOME/$socket" >/dev/null || {
-  logger::error "Agent already running"
+  log::error "Agent already running"
   exit 1
 }
 
 [ -e "$ssh_agent_binary" ] || {
-  logger::error "$ssh_agent_binary is missing"
+  log::error "$ssh_agent_binary is missing"
   exit 1
 }
 
@@ -79,6 +78,6 @@ set -o errexit -o nounset -o pipefail -o monitor
 export SSH_AUTH_SOCK="\$HOME/$socket"
 EOF
 
-logger::info "Initialization done. Starting the agent now."
+log::info "Initialization done. Starting the agent now."
 # Start it in the foreground
 exec "$ssh_agent_binary" -D -a "$HOME/$socket"
