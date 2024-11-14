@@ -30,15 +30,16 @@ ssh_agent_bin="${ssh_agent_bin:-$(which ssh-agent)}"
   exit 1
 }
 
-launchctl stop gui/501/com.openssh.ssh-agent || {
-  log::warning "Failed to stop system ssh-agent"
-}
+# XXX SIP prevents this from working?
+#launchctl stop gui/501/com.openssh.ssh-agent || {
+#  log::warning "Failed to stop system ssh-agent"
+#}
 
-launchctl disable gui/501/com.openssh.ssh-agent || {
-  log::warning "Failed to disable system ssh-agent"
-}
+#launchctl disable gui/501/com.openssh.ssh-agent || {
+#  log::warning "Failed to disable system ssh-agent"
+#}
 
-killall ssh-agent 2>/dev/null || true
+#killall ssh-agent 2>/dev/null || true
 
 # Remove any previous version
 launchctl remove world.farcloser.ssh_agent || true
