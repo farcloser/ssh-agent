@@ -1,0 +1,52 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    // Default preset: detects owner/repo@ver and go-module packages in aqua.yaml,
+    // updates the standard-registry ref, and bumps aqua_version in CI/devcontainer too.
+    "github>aquaproj/aqua-renovate-config#2.13.0",
+  ],
+  // Supply-chain cooldown: wait before proposing a bump. Doubles as protection
+  // against the race where a release tag exists but its assets aren't uploaded yet.
+  minimumReleaseAge: "3 days",
+  customManagers: [
+    // The go_install tools pinned as github.com/<owner>/<repo>[/<pkg>…]@vX.Y.Z
+    // (aqua.yaml, local registry). The aqua preset's generic manager cannot read
+    // a dotted owner ("github.com"), and its `_go/` hook needs the two-line
+    // `version:` form that `aqua update` refuses to bump — so these one-line
+    // pins get their own manager, on Renovate's go datasource: the module's
+    // repo tags, /vN major suffix aware, and a package path below the module
+    // root (…/cmd/tool) resolves to the module's tags. Only plain vX.Y.Z pins:
+    // a pseudo-version (v0.0.0-<date>-<hash>, an untagged module) has nothing
+    // Renovate could order it against and is left alone, deliberately.
+    {
+      customType: "regex",
+      managerFilePatterns: ["/(^|/)aqua\\.ya?ml$/"],
+      matchStrings: [
+        " +- +name: +(?<depName>github\\.com/[^@'\" \\n]+)@(?<currentValue>v\\d+\\.\\d+\\.\\d+)[ \\n]",
+      ],
+      datasourceTemplate: "go",
+    },
+  ],
+  packageRules: [
+    // lychee tags releases "lychee-vX.Y.Z" (next to "lychee-lib-vX.Y.Z" and
+    // "nightly"), and the aqua preset has no manager for that prefix in either
+    // pin form: it reads "lychee-v0.24.2" as the version, cannot order it, and
+    // never proposes a bump. Regex versioning that carries the prefix parses
+    // the pinned value and the candidate tags alike, and excludes the lib and
+    // nightly tags by construction.
+    {
+      matchDepNames: ["lycheeverse/lychee"],
+      versioning: "regex:^lychee-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+    },
+  ],
+  // `just do lint commits` enforces DCO on every PR range, bot commits included.
+  commitBody: "Signed-off-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+  // The update-aqua-checksum workflow pushes a fix-up commit onto Renovate's
+  // branches; without this, Renovate treats the branch as human-modified and
+  // stops rebasing it.
+  gitIgnoredAuthors: [
+    "300983632+limen-ci-farcloser[bot]@users.noreply.github.com",
+    "41898282+github-actions[bot]@users.noreply.github.com",
+  ],
+}

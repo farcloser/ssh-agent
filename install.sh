@@ -24,25 +24,23 @@ readonly log_root="${brew_log_root:-$posh_log_root}"
 fs::ensuredir "$destination"
 
 ssh_agent_bin="${brew_root:+$brew_root/bin/ssh-agent}"
-ssh_agent_bin="${ssh_agent_bin:-$(which ssh-agent)}"
+ssh_agent_bin="${ssh_agent_bin:-$(command -v ssh-agent)}"
 [ -e "$ssh_agent_bin" ] || {
   log::error "Failed to find ssh-agent binary"
   exit 1
 }
 
-# XXX SIP prevents this from working?
-#launchctl stop gui/501/com.openssh.ssh-agent || {
-#  log::warning "Failed to stop system ssh-agent"
-#}
+# Retire the system ssh-agent: `disable` covers every future login, `bootout`
+# unloads it now. It is socket-activated (launchd owns its listener), so the
+# old `stop` + `killall` sequence only ever respawned it — that, not SIP, is
+# why it never held. bootout of a not-loaded service is not an error here.
+launchctl disable "gui/$(id -u)/com.openssh.ssh-agent" || {
+  log::warning "Failed to disable the system ssh-agent"
+}
+launchctl bootout "gui/$(id -u)/com.openssh.ssh-agent" 2>/dev/null || true
 
-#launchctl disable gui/501/com.openssh.ssh-agent || {
-#  log::warning "Failed to disable system ssh-agent"
-#}
-
-#killall ssh-agent 2>/dev/null || true
-
-# Remove any previous version
-launchctl remove world.farcloser.ssh_agent || true
+# Unload any previous version (bootout is the current spelling of `remove`)
+launchctl bootout "gui/$(id -u)/world.farcloser.ssh_agent" 2>/dev/null || true
 
 # Copy the run script
 cp -f "$root"/farcloser-ssh-agent "$destination" || {
@@ -62,5 +60,5 @@ sed -Ei "" "s|[{]SSH_AGENT[}]|$ssh_agent_bin|" "$HOME"/Library/LaunchAgents/worl
 sed -Ei "" "s|[{]OUT_PATH[}]|$log_root/world.farcloser.ssh_agent-stdout.log|" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
 sed -Ei "" "s|[{]ERR_PATH[}]|$log_root/world.farcloser.ssh_agent-stderr.log|" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
 
-# Register the service
-launchctl load "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
+# Register and start the service (bootstrap is the current spelling of `load`)
+launchctl bootstrap "gui/$(id -u)" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist

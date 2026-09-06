@@ -16,11 +16,11 @@ log::stamp(){
   shift
   shift
 
-  [ ! "$TERM" ] || [ ! -t 2 ] || >&2 tput setaf "$color" 2>/dev/null || true
+  [ -z "${TERM:-}" ] || [ ! -t 2 ] || >&2 tput setaf "$color" 2>/dev/null || true
   for i in "$@"; do
     >&2 printf "[%s] [%s] %s\n" "$(date 2>/dev/null || true)" "$level" "$i"
   done
-  [ ! "$TERM" ] || [ ! -t 2 ] || >&2 tput op 2>/dev/null || true
+  [ -z "${TERM:-}" ] || [ ! -t 2 ] || >&2 tput op 2>/dev/null || true
 }
 
 log::info(){
@@ -44,7 +44,12 @@ fs::ensuredir(){
   }
 }
 
-readonly socket=.ssh/agent
+# The agent socket. NOT ~/.ssh/agent: since OpenSSH 10 (and the macOS 26
+# system ssh-agent), ssh-agent's own default socket lives in a DIRECTORY at
+# $HOME/.ssh/agent/s.*, so a socket FILE at that path collides with it — the
+# system agent creates the directory on first use, `rm -f` cannot remove it,
+# and the bind below fails. A sibling file name sidesteps that for good.
+readonly socket=.ssh/agent.sock
 
 fs::ensuredir "$(dirname "$HOME/$socket")"
 
@@ -52,8 +57,10 @@ fs::ensuredir "$(dirname "$HOME/$socket")"
 ssh_agent_binary="${1:-$(brew --prefix 2>/dev/null || printf "/usr")/bin/ssh-agent}"
 readonly ssh_agent_binary
 
-# ! ps x | grep ssh-agent | grep "$socket" || {
-! pgrep -lf "$ssh_agent_binary" "$HOME/$socket" >/dev/null || {
+# An agent already bound to OUR socket is the only "already running" that
+# matters (pgrep ORs its patterns, so matching the binary alone would also
+# trip on any other ssh-agent the user runs).
+! pgrep -f -- "-a $HOME/$socket" >/dev/null || {
   log::error "Agent already running"
   exit 1
 }
@@ -63,12 +70,17 @@ readonly ssh_agent_binary
   exit 1
 }
 
-# Delete any spurious remnant
+# Delete any spurious remnant of a previous instance (a dead socket file).
 rm -f "$HOME/$socket"
 
+# Previous versions bound the socket at ~/.ssh/agent — the path the system
+# agent now uses as a directory. A leftover socket FILE there is ours: drop
+# it. A directory there is the system agent's: leave it alone.
+[ ! -S "$HOME/.ssh/agent" ] || rm -f "$HOME/.ssh/agent"
+
+# Sourced by the login shell, so it must not set shell options: a `set -o
+# errexit -o nounset` here would leak into every interactive session.
 cat <<-EOF > "$HOME/.posh_ssh"
-#!/usr/bin/env bash
-set -o errexit -o nounset -o pipefail -o monitor
 # ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
 # ★ Kingpin             ★
 # ★ (c) 2023, Farcloser ★
