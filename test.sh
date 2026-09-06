@@ -23,7 +23,10 @@ test::brew(){
   launchctl disable gui/501/com.openssh.ssh-agent 2>/dev/null || true
   launchctl bootout gui/501/com.openssh.ssh-agent 2>/dev/null || true
 
-  # Install and start updated agent
+  # Install and start updated agent. Homebrew refuses formulas from a tap it
+  # has not been told to trust (the formula depends on farcloser/brews/openssh).
+  brew tap farcloser/brews
+  brew trust farcloser/brews
   brew install farcloser/brews/ssh-agent
   brew services start ssh-agent
 

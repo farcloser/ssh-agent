@@ -13,7 +13,9 @@ This is typically useful if you are using a YubiKey, or otherwise want to use
 launchctl disable gui/$(id -u)/com.openssh.ssh-agent
 launchctl bootout gui/$(id -u)/com.openssh.ssh-agent
 
-# Install and start updated agent
+# Install and start updated agent (the tap must be trusted: the formula
+# depends on farcloser/brews/openssh)
+brew tap farcloser/brews && brew trust farcloser/brews
 brew install farcloser/brews/ssh-agent
 brew services start ssh-agent
 
