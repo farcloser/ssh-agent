@@ -50,9 +50,9 @@ _log::log(){
 
   [ "${!numeric_level}" -ge "$_PRIVATE_LOG_LEVEL" ] || return 0
 
-  [ ! "$TERM" ] || [ ! -t 2 ] || >&2 tput "${!style:-}" 2>/dev/null || true
+  [ -z "${TERM:-}" ] || [ ! -t 2 ] || >&2 tput "${!style:-}" 2>/dev/null || true
   >&2 printf "[%s] %s: %s\n" "$(date 2>/dev/null || true)" "$(printf "%s" "$level" | tr '[:lower:]' '[:upper:]')" "$message"
-  [ ! "$TERM" ] || [ ! -t 2 ] || >&2 tput op 2>/dev/null || true
+  [ -z "${TERM:-}" ] || [ ! -t 2 ] || >&2 tput op 2>/dev/null || true
 }
 
 log::init(){

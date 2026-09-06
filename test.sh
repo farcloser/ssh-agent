@@ -18,17 +18,16 @@ lint::shell farcloser-ssh-agent ./*.sh ./lib/*.sh
 log::info "Linting successful"
 
 test::brew(){
-  # Kill the system one
-  launchctl stop gui/501/com.openssh.ssh-agent 2>/dev/null || true
-  # Requires staff
+  # Unload the system one: `disable` for every future login, `bootout` right
+  # now (it is socket-activated; `stop`/`killall` alone would just respawn it)
   launchctl disable gui/501/com.openssh.ssh-agent 2>/dev/null || true
-  killall ssh-agent 2>/dev/null || true
+  launchctl bootout gui/501/com.openssh.ssh-agent 2>/dev/null || true
 
   # Install and start updated agent
   brew install farcloser/brews/ssh-agent
   brew services start ssh-agent
 
-  pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
+  pgrep -lf "ssh-agent" ".ssh/agent.sock" >/dev/null || {
     log::error "No process found"
     exit 1
   }
@@ -45,7 +44,7 @@ test::brew(){
 test::nobrew(){
   ./install.sh
 
-  pgrep -lf "ssh-agent" ".ssh/agent" >/dev/null || {
+  pgrep -lf "ssh-agent" ".ssh/agent.sock" >/dev/null || {
     log::error "No process found"
     exit 1
   }
