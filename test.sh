@@ -12,14 +12,11 @@ readonly root
 . "$root"/lib/utils.sh
 . "$root"/lib/lint.sh
 
-# Linting
 log::info "Linting"
 lint::shell farcloser-ssh-agent ./*.sh ./lib/*.sh
 log::info "Linting successful"
 
 test::brew(){
-  # Unload the system one: `disable` for every future login, `bootout` right
-  # now (it is socket-activated; `stop`/`killall` alone would just respawn it)
   launchctl disable gui/501/com.openssh.ssh-agent 2>/dev/null || true
   launchctl bootout gui/501/com.openssh.ssh-agent 2>/dev/null || true
 
