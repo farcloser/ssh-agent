@@ -48,6 +48,7 @@ fs::ensuredir(){
 curl::get(){
   local url="$1"
   log::info "Downloading $url\n"
-  # 2024-04 Github still does not offer tls 1.3
-  curl --proto '=https' --tlsv1.2 -sSfL --compressed "$url"
+  # 2024-04 Github still does not offer tls 1.3. Retries: a plain GET,
+  # safe to repeat, and the network is the usual reason it fails.
+  curl --proto '=https' --tlsv1.2 -fsSL --compressed --retry 5 --retry-delay 3 --retry-all-errors "$url"
 }
