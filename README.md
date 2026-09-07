@@ -8,11 +8,6 @@ This is typically useful if you are using a YubiKey, or otherwise want to use
 ## TL;DR
 
 ```bash
-# Disable system agent: `disable` covers every future login, `bootout` unloads
-# it NOW. It is socket-activated, so `stop` or `killall` alone just respawn it.
-launchctl disable gui/$(id -u)/com.openssh.ssh-agent
-launchctl bootout gui/$(id -u)/com.openssh.ssh-agent
-
 # Install and start updated agent (the tap must be trusted: the formula
 # depends on farcloser/brews/openssh)
 brew tap farcloser/brews && brew trust farcloser/brews
@@ -22,6 +17,14 @@ brew services start ssh-agent
 # Get the socket location in profile
 printf '. "$HOME/.posh_ssh'"\n" >> ~/.profile
 . ~/.profile
+
+# Optional: retire Apple's ssh-agent. Not required — ours listens on its own
+# socket, and Apple's is socket-activated: it only ever runs when a client
+# connects to its listener, which nothing does once SSH_AUTH_SOCK points at
+# ours. `disable` covers every future login and, on macOS 26, is the only
+# lever: SIP refuses `bootout` and `kill` of an Apple LaunchAgent, so the
+# listener stays until you log out.
+launchctl disable gui/$(id -u)/com.openssh.ssh-agent
 ```
 
 ## Socket location
@@ -56,16 +59,17 @@ To uninstall:
 ```bash
 # Remove our service
 launchctl remove world.farcloser.ssh_agent
-# Re-enable the system service: `enable` covers the next login; to get it back
-# now, bootstrap it (or just log out and back in)
+# Re-enable the system service: `enable` covers the next login (SIP refuses
+# to bootstrap an Apple LaunchAgent by hand — log out and back in)
 launchctl enable gui/$(id -u)/com.openssh.ssh-agent
-launchctl bootstrap gui/$(id -u) /System/Library/LaunchAgents/com.openssh.ssh-agent.plist
 ```
 
 ### What is this doing exactly?
 
 `./install.sh` will:
-- disable and unload (`launchctl disable` + `bootout`) the system `ssh-agent` launch agent
+- disable (`launchctl disable`) the system `ssh-agent` launch agent — hygiene, not a
+  requirement (ours has its own socket): it stays loaded until the next login, which is
+  when `disable` takes effect, since SIP refuses `bootout` and `kill` of an Apple LaunchAgent
 - copy the run script `farcloser-ssh-agent` into `destination_folder`
 - install and start a user launch agent in `~/Library/LaunchAgents/world.farcloser.ssh_agent.plist`
   (the brew formula's `brew services start` does the same, minus the system-agent step —

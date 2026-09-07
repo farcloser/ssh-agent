@@ -30,14 +30,16 @@ ssh_agent_bin="${ssh_agent_bin:-$(command -v ssh-agent)}"
   exit 1
 }
 
-# Retire the system ssh-agent: `disable` covers every future login, `bootout`
-# unloads it now. It is socket-activated (launchd owns its listener), so the
-# old `stop` + `killall` sequence only ever respawned it — that, not SIP, is
-# why it never held. bootout of a not-loaded service is not an error here.
+# Retire the system ssh-agent — hygiene, not a requirement: ours listens on
+# its own socket, and Apple's is socket-activated, so it only runs when a
+# client connects to its listener. `disable` covers every future login and,
+# on macOS 26, is the only lever: SIP refuses both `bootout` and `kill` of
+# an Apple LaunchAgent ("Operation not permitted while System Integrity
+# Protection is engaged", "Not privileged to signal service"), so it stays
+# loaded until the next login.
 launchctl disable "gui/$(id -u)/com.openssh.ssh-agent" || {
   log::warning "Failed to disable the system ssh-agent"
 }
-launchctl bootout "gui/$(id -u)/com.openssh.ssh-agent" 2>/dev/null || true
 
 # Unload any previous version (bootout is the current spelling of `remove`)
 launchctl bootout "gui/$(id -u)/world.farcloser.ssh_agent" 2>/dev/null || true
