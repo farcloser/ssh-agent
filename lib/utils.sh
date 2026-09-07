@@ -16,7 +16,6 @@ portable::mktemp(){
 }
 
 
-# Helpers
 host::require(){
   local binary="$1"
 
@@ -48,7 +47,7 @@ fs::ensuredir(){
 curl::get(){
   local url="$1"
   log::info "Downloading $url\n"
-  # 2024-04 Github still does not offer tls 1.3. Retries: a plain GET,
-  # safe to repeat, and the network is the usual reason it fails.
+  # Retries: a plain GET, safe to repeat, and the network is the usual reason
+  # it fails.
   curl --proto '=https' --tlsv1.2 -fsSL --compressed --retry 5 --retry-delay 3 --retry-all-errors "$url"
 }

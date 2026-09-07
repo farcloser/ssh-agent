@@ -18,7 +18,6 @@ brew_root="$(brew --prefix || true)"
 readonly brew_root
 brew_log_root="${brew_root:+$brew_root/var/log}"
 posh_log_root="${POSH_LOG:-$HOME/Library/Log}"
-# Favor brew first, fallback on POSH_ otherwise, finally drop to macOS Library location if none of the above is set
 readonly log_root="${brew_log_root:-$posh_log_root}"
 
 fs::ensuredir "$destination"
@@ -41,26 +40,21 @@ launchctl disable "gui/$(id -u)/com.openssh.ssh-agent" || {
   log::warning "Failed to disable the system ssh-agent"
 }
 
-# Unload any previous version (bootout is the current spelling of `remove`)
 launchctl bootout "gui/$(id -u)/world.farcloser.ssh_agent" 2>/dev/null || true
 
-# Copy the run script
 cp -f "$root"/farcloser-ssh-agent "$destination" || {
   log::error "Failed to copy launch script to destination"
   exit 1
 }
 
-# Copy plist
 cp -f "$root"/world.farcloser.ssh_agent.plist "$HOME"/Library/LaunchAgents || {
   log::error "Failed to install plist"
   exit 1
 }
 
-# Modify plist to fit system
 sed -Ei "" "s|[{]LAUNCH_SCRIPT[}]|$destination/farcloser-ssh-agent|" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
 sed -Ei "" "s|[{]SSH_AGENT[}]|$ssh_agent_bin|" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
 sed -Ei "" "s|[{]OUT_PATH[}]|$log_root/world.farcloser.ssh_agent-stdout.log|" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
 sed -Ei "" "s|[{]ERR_PATH[}]|$log_root/world.farcloser.ssh_agent-stderr.log|" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist
 
-# Register and start the service (bootstrap is the current spelling of `load`)
 launchctl bootstrap "gui/$(id -u)" "$HOME"/Library/LaunchAgents/world.farcloser.ssh_agent.plist

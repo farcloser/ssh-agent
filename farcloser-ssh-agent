@@ -53,7 +53,6 @@ readonly socket=.ssh/agent.sock
 
 fs::ensuredir "$(dirname "$HOME/$socket")"
 
-# Traces of brew
 ssh_agent_binary="${1:-$(brew --prefix 2>/dev/null || printf "/usr")/bin/ssh-agent}"
 readonly ssh_agent_binary
 
@@ -70,12 +69,10 @@ readonly ssh_agent_binary
   exit 1
 }
 
-# Delete any spurious remnant of a previous instance (a dead socket file).
 rm -f "$HOME/$socket"
 
-# Previous versions bound the socket at ~/.ssh/agent — the path the system
-# agent now uses as a directory. A leftover socket FILE there is ours: drop
-# it. A directory there is the system agent's: leave it alone.
+# A socket FILE at ~/.ssh/agent is a leftover of ours; a DIRECTORY there is
+# the system agent's — leave it.
 [ ! -S "$HOME/.ssh/agent" ] || rm -f "$HOME/.ssh/agent"
 
 # Sourced by the login shell, so it must not set shell options: a `set -o
@@ -91,5 +88,4 @@ export SSH_AUTH_SOCK="\$HOME/$socket"
 EOF
 
 log::info "Initialization done. Starting the agent now."
-# Start it in the foreground
 exec "$ssh_agent_binary" -D -a "$HOME/$socket"
