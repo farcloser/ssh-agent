@@ -71,28 +71,28 @@
       "algorithm": "sha256"
     },
     {
-      "id": "github_release/github.com/golangci/golangci-lint/v2.12.2/golangci-lint-2.12.2-darwin-arm64.tar.gz",
-      "checksum": "A9C54498731B3128F79E090BE6110F3E5FFFCCC617B08142ED244D4126C73F29",
+      "id": "github_release/github.com/forkcloser/curl/v8.21.0/curl_8.21.0_darwin_arm64.tar.gz",
+      "checksum": "B2936D3902EC6ED96F9582C00616D2B033B5BB8EC5CB6330101D144482A56F85",
       "algorithm": "sha256"
     },
     {
-      "id": "github_release/github.com/golangci/golangci-lint/v2.12.2/golangci-lint-2.12.2-linux-amd64.tar.gz",
-      "checksum": "8DF580D2670FED8FA984AAC0507099AF8DF275E665215F5C7A2AE3943893A553",
+      "id": "github_release/github.com/forkcloser/curl/v8.21.0/curl_8.21.0_linux_amd64.tar.gz",
+      "checksum": "EC32B4B26F78F5AD98C64338DC29E67A3C61984E41A95B8792C77457D32DEF73",
       "algorithm": "sha256"
     },
     {
-      "id": "github_release/github.com/golangci/golangci-lint/v2.12.2/golangci-lint-2.12.2-linux-arm64.tar.gz",
-      "checksum": "44CD40A8C76C86755375ADFEEA52CFD3533CB43D7BD647771E0AE065E166DF3A",
+      "id": "github_release/github.com/forkcloser/curl/v8.21.0/curl_8.21.0_linux_arm64.tar.gz",
+      "checksum": "841829B51F1F80FA05BB7382B25E0EBDD765325FA4F8B567461B4FCFB5653B5C",
       "algorithm": "sha256"
     },
     {
-      "id": "github_release/github.com/golangci/golangci-lint/v2.12.2/golangci-lint-2.12.2-windows-amd64.zip",
-      "checksum": "BD42E3EBC8CB4ECECB86941983BAAF1DC221BBB04D838E94CE63B49CC91E02BB",
+      "id": "github_release/github.com/forkcloser/curl/v8.21.0/curl_8.21.0_windows_amd64.tar.gz",
+      "checksum": "DCF632D027EC21B129D06C415C3C008D8DF241BC3516D43FC6B0327C6E35A087",
       "algorithm": "sha256"
     },
     {
-      "id": "github_release/github.com/golangci/golangci-lint/v2.12.2/golangci-lint-2.12.2-windows-arm64.zip",
-      "checksum": "947B9A5BF762D465710B376C156F0184ABB2168378B0826AF1899E0EE7183742",
+      "id": "github_release/github.com/forkcloser/curl/v8.21.0/curl_8.21.0_windows_arm64.tar.gz",
+      "checksum": "78EB1B53E55037111534CD2B87AD204DE04318A92C646554A78390BFB60E466F",
       "algorithm": "sha256"
     },
     {
