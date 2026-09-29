@@ -71,6 +71,17 @@ jobs:
       - name: Install aqua (pinned, checksum-verified)
         uses: ./.github/actions/setup-aqua
 
+      # aqua's package store, keyed on the exact pins and per architecture
+      # (the store holds native binaries). A warm store turns every lazy first
+      # use below into a link; the fallback key keeps the tools a pin bump did
+      # not touch, and the changed one downloads and verifies as before.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ env.AQUA_ROOT_DIR }}/pkgs
+          key: aqua-pkgs-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('aqua.yaml', 'aqua-checksums.json', '.limen/aqua-registry.yaml') }}
+          restore-keys: |
+            aqua-pkgs-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Install pinned tools
         # Link-only: the shims download each tool lazily on first use (and it
         # is verified against the committed aqua-checksums.json then), so a
