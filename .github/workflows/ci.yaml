@@ -88,6 +88,29 @@ jobs:
         # job only ever pays for the tools its recipes actually run.
         run: aqua install --only-link
 
+      # The Go build and module caches, plus the linter's (build/cache/, see
+      # main.just). The per-platform analysis legs compile the whole module
+      # graph five times, cold, on every run without this. Paths come from the
+      # pinned go itself — they differ per OS — and the key carries its version
+      # and every go.sum; a stale restore is harmless (the build cache is
+      # content-addressed, the module cache is checksum-verified), so the
+      # fallback key is always worth taking.
+      - id: gocache
+        run: |
+          echo "build=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+          echo "version=$(go env GOVERSION)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ${{ steps.gocache.outputs.build }}
+            ${{ steps.gocache.outputs.mod }}
+            build/cache
+          key: go-${{ runner.os }}-${{ runner.arch }}-${{ steps.gocache.outputs.version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-${{ runner.os }}-${{ runner.arch }}-${{ steps.gocache.outputs.version }}-
+            go-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Lint
         run: just lint
 
