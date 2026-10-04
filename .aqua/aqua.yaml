@@ -14,7 +14,7 @@ registries:
     ref: v4.544.0 # renovate: depName=aquaproj/aqua-registry
   - name: local
     type: local
-    path: .limen/aqua-registry.yaml
+    path: ../.limen/aqua-registry.yaml
 
 packages:
   # Every pin is the one-line name@version form, and stays so (limen fix
@@ -50,3 +50,4 @@ packages:
     registry: local
   - name: forkcloser/curl@v8.21.0
     registry: local
+  - import: ../.limen/aqua.yaml
