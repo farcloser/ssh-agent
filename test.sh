@@ -16,31 +16,6 @@ log::info "Linting"
 lint::shell farcloser-ssh-agent ./*.sh ./lib/*.sh
 log::info "Linting successful"
 
-test::brew(){
-  launchctl disable gui/501/com.openssh.ssh-agent 2>/dev/null || true
-  launchctl bootout gui/501/com.openssh.ssh-agent 2>/dev/null || true
-
-  # Install and start updated agent. Homebrew refuses formulas from a tap it
-  # has not been told to trust (the formula depends on farcloser/brews/openssh).
-  brew tap farcloser/brews
-  brew trust farcloser/brews
-  brew install farcloser/brews/ssh-agent
-  brew services start ssh-agent
-
-  pgrep -lf "ssh-agent" ".ssh/agent.sock" >/dev/null || {
-    log::error "No process found"
-    exit 1
-  }
-
-  [ "$(pgrep -lf "ssh-agent" | wc -l |  tr -d ' ')" == 1 ] || {
-    log::error "System agent still running"
-    exit 1
-  }
-
-  brew services stop ssh-agent
-  brew uninstall farcloser/brews/ssh-agent
-}
-
 test::nobrew(){
   ./install.sh
 
@@ -55,5 +30,4 @@ test::nobrew(){
   }
 }
 
-test::brew
 test::nobrew

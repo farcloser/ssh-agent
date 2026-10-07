@@ -17,8 +17,9 @@ test:
         echo "ssh-agent is macOS-only — nothing to test on this platform (skipped, not failed)."
         exit 0
     fi
-    # shellcheck disable=SC2154 # BREW_BIN is exported by the canonical .justfile (main.just).
-    [ -n "${BREW_BIN:-}" ] || { echo "brew was not found on your PATH when just started" >&2; exit 1; }
-    # Appended, not prepended: test.sh needs brew, but the tools it lints with
+    # install.sh uses brew when there is one (its prefix, its openssh) and does
+    # without otherwise. Appended, not prepended: the tools test.sh lints with
     # must stay aqua's, not whatever Homebrew happens to have installed.
-    PATH="$PATH:$(dirname "$BREW_BIN")" ./test.sh
+    # shellcheck disable=SC2154 # BREW_BIN is exported by the canonical .justfile (main.just).
+    if [ -n "${BREW_BIN:-}" ]; then PATH="$PATH:$(dirname "$BREW_BIN")"; fi
+    ./test.sh
