@@ -23,3 +23,6 @@ test:
     # shellcheck disable=SC2154 # BREW_BIN is exported by the canonical .justfile (main.just).
     if [ -n "${BREW_BIN:-}" ]; then PATH="$PATH:$(dirname "$BREW_BIN")"; fi
     ./test.sh
+
+# --- added by limen fix: the recipe the security workflow runs ---
+security: do::security::default
