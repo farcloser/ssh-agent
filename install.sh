@@ -22,9 +22,13 @@ readonly log_root="${brew_log_root:-$posh_log_root}"
 
 fs::ensuredir "$destination"
 
-ssh_agent_bin="${brew_root:+$brew_root/bin/ssh-agent}"
-ssh_agent_bin="${ssh_agent_bin:-$(command -v ssh-agent)}"
-[ -e "$ssh_agent_bin" ] || {
+# Homebrew's openssh when it is installed, otherwise a compatible ssh-agent
+# from PATH, as the README promises: brew alone, without the formula, is not
+# a reason to fail.
+ssh_agent_bin=
+[ -z "$brew_root" ] || [ ! -e "$brew_root/bin/ssh-agent" ] || ssh_agent_bin="$brew_root/bin/ssh-agent"
+ssh_agent_bin="${ssh_agent_bin:-$(command -v ssh-agent || true)}"
+[ -n "$ssh_agent_bin" ] && [ -e "$ssh_agent_bin" ] || {
   log::error "Failed to find ssh-agent binary"
   exit 1
 }
